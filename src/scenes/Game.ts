@@ -77,6 +77,9 @@ export class Game extends Phaser.Scene {
     }
 
     this.obstacles.children.iterate((obstacle) => {
+      if (!obstacle) {
+        return true; // Skip if the obstacle has been destroyed
+      }
       const obstacleSprite = obstacle as Phaser.Physics.Arcade.Sprite;
       if (obstacleSprite.x < -100) {
         obstacleSprite.destroy();
