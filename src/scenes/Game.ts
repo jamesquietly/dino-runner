@@ -2,7 +2,8 @@ import Phaser from 'phaser';
 
 export class Game extends Phaser.Scene {
   private player!: Phaser.Physics.Arcade.Sprite;
-  private platforms!: Phaser.Physics.Arcade.Group;
+  private ground!: Phaser.GameObjects.TileSprite;
+  private groundCollider!: Phaser.Physics.Arcade.StaticGroup;
   private obstacles!: Phaser.Physics.Arcade.Group;
   private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
   private score: number = 0;
@@ -15,15 +16,12 @@ export class Game extends Phaser.Scene {
   }
 
   create() {
-    this.platforms = this.physics.add.group({
-      allowGravity: false,
-      immovable: true,
-    });
+    this.gameOver = false;
+    this.score = 0;
 
-    for (let i = 0; i < 5; i++) {
-      const platform = this.platforms.create(i * 200, 568, 'platform') as Phaser.Physics.Arcade.Sprite;
-      platform.setVelocityX(-100);
-    }
+    this.ground = this.add.tileSprite(400, 568, 800, 32, 'ground');
+    this.groundCollider = this.physics.add.staticGroup();
+    this.groundCollider.create(400, 568, 'ground').setScale(2).setVisible(false).refreshBody();
 
     this.player = this.physics.add.sprite(100, 450, 'player');
     this.player.setCollideWorldBounds(true);
@@ -33,7 +31,7 @@ export class Game extends Phaser.Scene {
       immovable: true,
     });
 
-    this.physics.add.collider(this.player, this.platforms);
+    this.physics.add.collider(this.player, this.groundCollider);
     this.physics.add.collider(this.player, this.obstacles, this.handleGameOver, undefined, this);
 
     this.cursors = this.input.keyboard.createCursorKeys();
@@ -56,6 +54,12 @@ export class Game extends Phaser.Scene {
     });
     this.gameOverText.setOrigin(0.5);
     this.gameOverText.setVisible(false);
+
+    this.input.on('pointerdown', () => {
+      if (this.gameOver) {
+        this.scene.restart();
+      }
+    });
   }
 
   update() {
@@ -63,17 +67,11 @@ export class Game extends Phaser.Scene {
       return;
     }
 
+    this.ground.tilePositionX += 2;
+
     if (this.cursors.space.isDown && this.player.body.touching.down) {
       this.player.setVelocityY(-330);
     }
-
-    this.platforms.children.iterate((platform) => {
-      const platformSprite = platform as Phaser.Physics.Arcade.Sprite;
-      if (platformSprite.x < -100) {
-        platformSprite.x = 800 + (Math.random() * 200);
-      }
-      return true;
-    });
 
     this.obstacles.children.iterate((obstacle) => {
       const obstacleSprite = obstacle as Phaser.Physics.Arcade.Sprite;
@@ -87,18 +85,21 @@ export class Game extends Phaser.Scene {
   }
 
   private spawnObstacle() {
-    const obstacle = this.obstacles.create(800, 500, 'obstacle') as Phaser.Physics.Arcade.Sprite;
+    if (this.gameOver) {
+      return;
+    }
+    const obstacle = this.obstacles.create(800, 552, 'obstacle') as Phaser.Physics.Arcade.Sprite;
     obstacle.setVelocityX(-100);
+    obstacle.setOrigin(0.5, 1);
   }
 
   private handleGameOver() {
+    if (this.gameOver) {
+      return;
+    }
     this.physics.pause();
     this.player.setTint(0xff0000);
     this.gameOver = true;
     this.gameOverText.setVisible(true);
-
-    this.input.once('pointerdown', () => {
-      this.scene.restart();
-    });
   }
 }
