@@ -6,7 +6,7 @@ export class Preloader extends Phaser.Scene {
   }
 
   preload() {
-    this.load.image('player', 'assets/player.png');
+    this.load.image('dino', 'assets/dino.png');
     this.load.image('ground', 'assets/ground.png');
     this.load.image('obstacle', 'assets/obstacle.png');
   }

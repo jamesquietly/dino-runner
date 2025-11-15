@@ -10,12 +10,15 @@ export class Game extends Phaser.Scene {
   private scoreText!: Phaser.GameObjects.Text;
   private gameOver: boolean = false;
   private gameOverText!: Phaser.GameObjects.Text;
+  private obstacleTimer!: Phaser.Time.TimerEvent;
 
   constructor() {
     super('game');
   }
 
   create() {
+    this.cameras.main.setBackgroundColor('#ffffff');
+
     this.gameOver = false;
     this.score = 0;
 
@@ -26,7 +29,7 @@ export class Game extends Phaser.Scene {
     groundColliderSprite.setVisible(false);
     groundColliderSprite.refreshBody();
 
-    this.player = this.physics.add.sprite(100, 450, 'player');
+    this.player = this.physics.add.sprite(100, 450, 'dino');
     this.player.setCollideWorldBounds(true);
 
     this.obstacles = this.physics.add.group({
@@ -41,14 +44,14 @@ export class Game extends Phaser.Scene {
 
     this.scoreText = this.add.text(16, 16, 'Score: 0', {
       fontSize: '32px',
-      color: '#fff',
+      color: '#000000',
     });
 
-    this.time.addEvent({
+    this.obstacleTimer = this.time.addEvent({
       delay: 2000,
       callback: this.spawnObstacle,
       callbackScope: this,
-      loop: true,
+      loop: false,
     });
 
     this.gameOverText = this.add.text(400, 300, 'Game Over', {
@@ -97,6 +100,14 @@ export class Game extends Phaser.Scene {
     const obstacle = this.obstacles.create(800, 552, 'obstacle') as Phaser.Physics.Arcade.Sprite;
     obstacle.setVelocityX(-100);
     obstacle.setOrigin(0.5, 1);
+
+    // Schedule the next obstacle with a random delay
+    this.obstacleTimer = this.time.addEvent({
+      delay: Phaser.Math.Between(1500, 3000),
+      callback: this.spawnObstacle,
+      callbackScope: this,
+      loop: false,
+    });
   }
 
   private handleGameOver() {
@@ -107,5 +118,8 @@ export class Game extends Phaser.Scene {
     this.player.setTint(0xff0000);
     this.gameOver = true;
     this.gameOverText.setVisible(true);
+    if (this.obstacleTimer) {
+      this.obstacleTimer.remove();
+    }
   }
 }
