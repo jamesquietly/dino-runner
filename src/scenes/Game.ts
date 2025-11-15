@@ -21,7 +21,10 @@ export class Game extends Phaser.Scene {
 
     this.ground = this.add.tileSprite(400, 568, 800, 32, 'ground');
     this.groundCollider = this.physics.add.staticGroup();
-    this.groundCollider.create(400, 568, 'ground').setScale(2).setVisible(false).refreshBody();
+    const groundColliderSprite = this.groundCollider.create(400, 568, 'ground') as Phaser.Physics.Arcade.Sprite;
+    groundColliderSprite.setDisplaySize(800, 32);
+    groundColliderSprite.setVisible(false);
+    groundColliderSprite.refreshBody();
 
     this.player = this.physics.add.sprite(100, 450, 'player');
     this.player.setCollideWorldBounds(true);
